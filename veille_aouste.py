@@ -1,3 +1,7 @@
+# Note :
+# The file template.ods must be open before using this macro.
+
+
 from scriptforge import CreateScriptService
 
 CRAG_INFO_URL = '/home/louberehc/veille_aouste/voies/Anse.txt'
@@ -37,11 +41,14 @@ def fill_route(doc, route_range, text_input, current_row):
     
 def fill_spreadsheet(doc, route_range, text_input: str, current_row: int):
     """ 
-    - Fill the spreadsheet according the text input type.
+    - Fill the spreadsheet according the text_input type.
+    - Group and hide rows where each route maintenance will be made.
     - Track the row number of the 'cursor'.
     
     # Args :
-        - input : a text line
+        - doc : the target document, a libreoffice calc.
+        - route_range : a template range to be copied. 
+        - text_input : a text line.
         - current row : the line number where to write information in
         the sheet.
         
@@ -52,7 +59,13 @@ def fill_spreadsheet(doc, route_range, text_input: str, current_row: int):
         case "Secteur":
             current_row = fill_sector(doc, text_input, current_row)
         case "Voie":
+            initial_current_row = current_row
             current_row = fill_route(doc, route_range, text_input, current_row)
+            # Group and hide
+            range_str = f'Feuille1.A{initial_current_row + 1}:B{current_row-1}'
+            range_add = doc.XCellRange(range_str).RangeAddress
+            doc.XSpreadsheet('Feuille1').group(range_add, 'ROWS')
+            doc.XSpreadsheet('Feuille1').hideDetail(range_add)                
         case "Saut de ligne":
             current_row += 1 
         case _:
